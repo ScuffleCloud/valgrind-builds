@@ -99,5 +99,5 @@ jobs:
             This is an auto-release of valgrind.
             Triggered by ${{ github.event_name }}
             [View Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-          tag: auto-release-${{ github.run_id }}
+          tag: latest
           replacesArtifacts: true
