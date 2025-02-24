@@ -18,10 +18,10 @@ jobs:
     strategy:
       matrix:
         tag:
-          - 3.23.0
-          - 3.22.0
-          - 3.21.0
-          - 3.20.0
+          - VALGRIND_3_23_0
+          - VALGRIND_3_22_0
+          - VALGRIND_3_21_0
+          - VALGRIND_3_20_0
           - master
         os:
           - ubuntu-22.04
