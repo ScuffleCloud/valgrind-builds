@@ -99,9 +99,8 @@ jobs:
       - name: Debug Artifacts
         run: |
           set -eo pipefail
-          sudo apt-get update
-          sudo apt-get install -y tree
-          tree upload/
+          find upload/ -type f -exec mv {} . \;
+          find upload/ -type d -exec rm -rf {} . \;
 
       - uses: ncipollo/release-action@v1
         with:
