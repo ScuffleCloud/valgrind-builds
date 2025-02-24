@@ -15,6 +15,7 @@ defaults:
 
 jobs:
   build:
+    name: Build ({{ matrix.tag }} - {{ matrix.os }} )
     strategy:
       matrix:
         tag:
@@ -29,10 +30,83 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
       - name: Build
         run: ./build.sh ${{ matrix.tag }}
+
+      - name: Artifact Name
+        id: artifact_name
+        run: |
+          set -eo pipefail
+          case ${{ matrix.tag }} in
+            VALGRIND_*)
+              version=$(echo ${{ matrix.tag }} | sed 's/VALGRIND_//' | sed 's/_/./g')
+              ;;
+            *)
+              version="master"
+              ;;
+          esac
+          case ${{ matrix.os }} in
+            ubuntu-22.04)
+              os="linux-x86_64"
+              ;;
+            ubuntu-22.04-arm)
+              os="linux-aarch64"
+              ;;
+          esac
+          echo "artifact_name=valgrind-${version}-${os}" >> $GITHUB_OUTPUT
+
+      - name: Create Archive
+        run: |
+          set -eo pipefail
+          mkdir -p upload/${{ steps.artifact_name.outputs.artifact_name }}
+          mv dist/* upload/${{ steps.artifact_name.outputs.artifact_name }}
+
+          case ${{ runner.os }} in
+            Linux)
+              tar -czvf upload/${{ steps.artifact_name.outputs.artifact_name }}.tar.gz upload/${{ steps.artifact_name.outputs.artifact_name }}
+              ;;
+            Windows)
+              zip -r upload/${{ steps.artifact_name.outputs.artifact_name }}.zip upload/${{ steps.artifact_name.outputs.artifact_name }}
+              ;;
+          esac
+
+          rm -rf upload/${{ steps.artifact_name.outputs.artifact_name }}
+
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: valgrind-${{ matrix.tag }}-${{ matrix.os }}
-          path: dist/
+          name: ${{ steps.artifact_name.outputs.artifact_name }}
+          path: upload/${{ steps.artifact_name.outputs.artifact_name }}
+
+  release:
+    name: Release
+    needs: [build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    # if: ${{ github.event_name != 'pull_request' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: upload/
+      - name: Debug Artifacts
+        run: |
+          set -eo pipefail
+          sudo apt-get update
+          sudo apt-get install -y tree
+          tree upload/
+
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: upload/*
+          makeLatest: true
+          name: Auto-Release ${{ github.run_id }}
+          body: |
+            This is an auto-release of valgrind.
+            Triggered by ${{ github.event_name }}
+            [View Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          tag: auto-release-${{ github.run_id }}
+          replacesArtifacts: true
