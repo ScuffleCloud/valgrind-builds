@@ -94,6 +94,7 @@ jobs:
         with:
           artifacts: upload/*
           makeLatest: true
+          allowUpdates: true
           name: Auto-Release ${{ github.run_id }}
           body: |
             This is an auto-release of valgrind.
@@ -106,6 +107,7 @@ jobs:
         with:
           artifacts: upload/*
           makeLatest: false
+          allowUpdates: true
           name: Auto-Release ${{ github.run_id }}
           body: |
             This is an auto-release of valgrind.
