@@ -13,8 +13,9 @@ For use in a CI pipeline, you can use the following action to download the artif
   env:
     VALGRIND_VERSION: master
     INSTALL_PATH: /usr/local
-    RELEASE_URL: https://github.com/scufflecloud/valgrind-builds/releases/download/latest
+    RELEASE_URL: 
   run: |
     set -eo pipefail
-    curl -L "${RELEASE_URL}/valgrind-${VALGRIND_VERSION}-$(uname -s)-$(uname -m).tar.gz" | sudo tar -xzf - --strip-components=1 -C $INSTALL_PATH
+    curl -L "https://github.com/scufflecloud/valgrind-builds/releases/download/latest/valgrind-${VALGRIND_VERSION}-$(uname -s)-$(uname -m).tar.gz" | sudo tar -xzf - --strip-components=1 -C $INSTALL_PATH
+    echo "VALGRIND_LIB=$INSTALL_PATH/libexec/valgrind" >> $GITHUB_ENV
 ```

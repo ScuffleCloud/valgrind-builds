@@ -72,9 +72,9 @@ jobs:
     name: Release
     needs: [build]
     runs-on: ubuntu-24.04
+    if: ${{ github.event_name != 'pull_request' }}
     permissions:
       contents: write
-    # if: ${{ github.event_name != 'pull_request' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -100,4 +100,16 @@ jobs:
             Triggered by ${{ github.event_name }}
             [View Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
           tag: latest
+          replacesArtifacts: true
+
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: upload/*
+          makeLatest: false
+          name: Auto-Release ${{ github.run_id }}
+          body: |
+            This is an auto-release of valgrind.
+            Triggered by ${{ github.event_name }}
+            [View Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          tag: auto-release-${{ github.run_id }}
           replacesArtifacts: true
