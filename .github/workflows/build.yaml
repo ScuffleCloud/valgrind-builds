@@ -52,32 +52,15 @@ jobs:
               version="master"
               ;;
           esac
-          case ${{ matrix.os }} in
-            ubuntu-22.04)
-              os="linux-x86_64"
-              ;;
-            ubuntu-22.04-arm)
-              os="linux-aarch64"
-              ;;
-          esac
-          echo "artifact_name=valgrind-${version}-${os}" >> $GITHUB_OUTPUT
+          echo "artifact_name=valgrind-${version}-$(uname -s)-$(uname -m)" >> $GITHUB_OUTPUT
 
       - name: Create Archive
         run: |
           set -eo pipefail
-          mkdir -p upload/${{ steps.artifact_name.outputs.artifact_name }}
-          mv dist/* upload/${{ steps.artifact_name.outputs.artifact_name }}
-
-          case ${{ runner.os }} in
-            Linux)
-              tar -czvf upload/${{ steps.artifact_name.outputs.artifact_name }}.tar.gz upload/${{ steps.artifact_name.outputs.artifact_name }}
-              ;;
-            Windows)
-              zip -r upload/${{ steps.artifact_name.outputs.artifact_name }}.zip upload/${{ steps.artifact_name.outputs.artifact_name }}
-              ;;
-          esac
-
-          rm -rf upload/${{ steps.artifact_name.outputs.artifact_name }}
+          mkdir -p upload/
+          mv dist ${{ steps.artifact_name.outputs.artifact_name }}
+          tar -czvf upload/${{ steps.artifact_name.outputs.artifact_name }}.tar.gz ${{ steps.artifact_name.outputs.artifact_name }}
+          rm -rf ${{ steps.artifact_name.outputs.artifact_name }}
 
       - name: Upload
         uses: actions/upload-artifact@v4
